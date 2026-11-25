@@ -12,6 +12,7 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - Before calling a step done, run it with uv and show me the real output.
 - Behaviors first. I give the expected answers, you write them as checks, show them failing, then write the code.
 - Never read today's date inside the logic. Pass the run date in. Only the command line may read today's date.
+- When something breaks, show me the full error before changing anything.
 
 ## How I learn
 
