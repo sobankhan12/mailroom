@@ -57,6 +57,25 @@ def next_send(run_date: str) -> str:
     return day.isoformat()
 
 
+SUBJECT_LIMIT = 50
+
+
+def check_subject(issue_text: str) -> list[str]:
+    lines = issue_text.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line[0:8] == "Subject:":
+            subject = line[8:].strip()  # the text after "Subject:", without spaces
+            if subject == "":
+                return ["empty"]
+            if len(subject) > SUBJECT_LIMIT:
+                return ["too long"]
+            return []
+        i += 1
+    return ["missing"]
+
+
 def get_option(args: list[str], name: str) -> str:
     i = 0
     while i < len(args) - 1:

@@ -1,4 +1,5 @@
 from mailroom import (
+    check_subject,
     count_by_group,
     count_joined_since,
     count_subscribers,
@@ -40,3 +41,33 @@ def test_next_send_after_2026_11_20_is_first_monday_of_december():
 
 def test_next_send_after_2026_12_07_is_first_monday_of_january():
     assert next_send("2026-12-07") == "2027-01-04"
+
+
+def test_short_subject_has_no_problems():
+    issue_text = "Subject: Charm of Winter 2026 opens Monday\nPreview: Shop first."
+    assert check_subject(issue_text) == []
+
+
+def test_subject_of_50_characters_has_no_problems():
+    issue_text = "Subject: Your winter shawl ships on Monday in bright maroon\nPreview: Shop first."
+    assert check_subject(issue_text) == []
+
+
+def test_subject_of_51_characters_is_too_long():
+    issue_text = "Subject: Your winter shawl ships on Monday in bright maroon.\nPreview: Shop first."
+    assert check_subject(issue_text) == ["too long"]
+
+
+def test_empty_subject_is_empty():
+    issue_text = "Subject: \nPreview: Shop first."
+    assert check_subject(issue_text) == ["empty"]
+
+
+def test_subject_of_only_spaces_is_empty():
+    issue_text = "Subject:      \nPreview: Shop first."
+    assert check_subject(issue_text) == ["empty"]
+
+
+def test_no_subject_line_is_missing():
+    issue_text = "Preview: Shop first.\n\nHi {{first_name}},"
+    assert check_subject(issue_text) == ["missing"]

@@ -11,6 +11,7 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - Commit and push after every step.
 - Before calling a step done, run it with uv and show me the real output.
 - Behaviors first. I give the expected answers, you write them as pytest tests (one test per behavior, run with `uv run pytest`), show them failing, then write the code.
+- I decide the test cases and their answers. Never change an expected answer to make a test pass.
 - Never read today's date inside the logic. Pass the run date in. Only the command line may read today's date.
 - When something breaks, show me the full error before changing anything.
 
