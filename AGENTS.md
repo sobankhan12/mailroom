@@ -9,6 +9,7 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - Use uv for everything: `uv run`, `uv add`, `uv sync`. Never use pip or a bare `python` command.
 - Never use a real person's email address. Use @example.com, and @resend.dev for practice sends.
 - Commit and push after every step.
+- Before calling a step done, run it with uv and show me the real output.
 
 ## How I learn
 
