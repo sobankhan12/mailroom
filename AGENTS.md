@@ -15,6 +15,10 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - Never read today's date inside the logic. Pass the run date in. Only the command line may read today's date.
 - When something breaks, show me the full error before changing anything.
 
+## Decisions
+
+- Length limits (subject 50, preview 90) count what Python's `len()` counts: code points. An emoji like 👍🏽 is 2 pieces, so it counts as 2, even though the reader sees 1.
+
 ## How I learn
 
 - I am new to Python. I have completed up to 13.12 of https://agentfactory.panaversity.org/building-ai-workers/programming-fundamentals/ and I update this number as I learn.

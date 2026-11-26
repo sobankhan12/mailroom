@@ -184,3 +184,10 @@ def test_issue_with_long_subject_and_no_link_shows_both_problems():
         "Gul Ahmed, {{company_address}} · Unsubscribe: {{unsubscribe_url}}"
     )
     assert check_issue(issue_text) == ["subject: too long", "link: missing"]
+
+
+def test_subject_length_is_counted_with_len():
+    # The reader sees 50 characters, but 👍🏽 is 2 pieces for len(), so len() says 51.
+    subject = "👍🏽 Thanks for joining Charm of Winter 2026 waitlist"
+    assert len(subject) == 51
+    assert check_subject("Subject: " + subject) == ["too long"]
