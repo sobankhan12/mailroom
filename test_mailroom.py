@@ -1,16 +1,18 @@
 from pathlib import Path
 
-from mailroom import (
+from checks import (
     check_footer,
     check_greeting,
     check_issue,
     check_link,
     check_preview,
     check_subject,
+)
+from schedule import next_send
+from subscribers import (
     count_by_group,
     count_joined_since,
     count_subscribers,
-    next_send,
     read_lines,
 )
 
