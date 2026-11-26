@@ -7,6 +7,7 @@ from mailroom.subscribers import (
     count_by_group,
     count_joined_since,
     count_subscribers,
+    import_signups,
     next_send,
     read_subscribers,
 )
@@ -53,3 +54,12 @@ def main() -> None:
                 for problem in problems:
                     print("  " + problem)
                 sys.exit(1)
+
+        if command == "import":
+            for row in import_signups(sys.argv[2]):
+                if row.subscriber is not None:
+                    print("accepted:", row.first_name)
+                else:
+                    print("rejected:", row.first_name)
+                    for reason in row.reasons:
+                        print("  " + reason.field + ": " + reason.message)

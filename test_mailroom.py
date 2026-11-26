@@ -12,6 +12,8 @@ from mailroom.subscribers import (
     count_joined_since,
     count_subscribers,
     next_send,
+    ImportedRow,
+    import_signups,
     read_subscribers,
 )
 from mailroom.issue import Issue, read_issue
@@ -208,3 +210,57 @@ def test_personalize_puts_ayesha_where_first_name_was() -> None:
 def test_personalize_leaves_unsubscribe_url_as_it_is() -> None:
     text = read_issue("issues/issue-01.md").personalize("Ayesha")
     assert count_text(text, "Unsubscribe: {{unsubscribe_url}}") == 1
+
+
+SIGNUPS = import_signups("data/new-signups.csv")
+
+
+def find_row(first_name: str) -> ImportedRow:
+    for row in SIGNUPS:
+        if row.first_name == first_name:
+            return row
+    raise AssertionError("no row for " + first_name)
+
+
+def test_maria_is_accepted() -> None:
+    assert find_row("Maria").subscriber is not None
+
+
+def test_sara_is_accepted() -> None:
+    assert find_row("Sara").subscriber is not None
+
+
+def test_tom_is_accepted() -> None:
+    assert find_row("Tom").subscriber is not None
+
+
+def test_ines_is_accepted() -> None:
+    assert find_row("Ines").subscriber is not None
+
+
+def test_omar_is_rejected_for_email() -> None:
+    row = find_row("Omar")
+    assert row.subscriber is None
+    assert len(row.reasons) == 1
+    assert row.reasons[0].field == "email"
+
+
+def test_lena_is_rejected_for_consent() -> None:
+    row = find_row("Lena")
+    assert row.subscriber is None
+    assert len(row.reasons) == 1
+    assert row.reasons[0].field == "consent"
+
+
+def test_kofi_is_rejected_for_group() -> None:
+    row = find_row("Kofi")
+    assert row.subscriber is None
+    assert len(row.reasons) == 1
+    assert row.reasons[0].field == "group"
+
+
+def test_hana_is_rejected_for_joined_on() -> None:
+    row = find_row("Hana")
+    assert row.subscriber is None
+    assert len(row.reasons) == 1
+    assert row.reasons[0].field == "joined_on"

@@ -17,11 +17,14 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - Mailroom is a package under `src/mailroom`. One module per job: `subscribers` (subscribers and dates), `issue`, `checks`, `commands`. Run it with `uv run mailroom`.
 - Only the `commands` module prints.
 - Pass `Subscriber` and `Issue` objects around, never raw rows or raw text.
+- Data from outside goes through the model before any code uses it.
 - Every function has type hints, and pyright must be clean (`uv run pyright` shows 0 errors). When pyright complains, fix the call, not the hint.
 
 ## Decisions
 
 - Length limits (subject 50, preview 90) count what Python's `len()` counts: code points. An emoji like 👍🏽 is 2 pieces, so it counts as 2, even though the reader sees 1.
+- Rejection reasons are Pydantic's own messages, shown with the field name. Tests check accepted/rejected and the field, never the message wording, because the wording belongs to Pydantic and can change when it updates.
+- Email checks are about how an address is written, not whether it exists. `sara.ali@gmail.com` would pass the model, so keeping data on @example.com is still on us.
 
 ## How I learn
 

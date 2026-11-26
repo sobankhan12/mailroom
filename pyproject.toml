@@ -7,7 +7,9 @@ authors = [
     { name = "muhammad soban", email = "45793273+sobankhan12@users.noreply.github.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic[email]>=2.14.4",
+]
 
 [project.scripts]
 mailroom = "mailroom.commands:main"
