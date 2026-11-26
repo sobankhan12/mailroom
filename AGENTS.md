@@ -14,6 +14,8 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - I decide the test cases and their answers. Never change an expected answer to make a test pass.
 - Never read today's date inside the logic. Pass the run date in. Only the command line may read today's date.
 - When something breaks, show me the full error before changing anything.
+- Mailroom is a package under `src/mailroom`. One module per job: `subscribers` (subscribers and dates), `issue`, `checks`, `commands`. Run it with `uv run mailroom`.
+- Only the `commands` module prints.
 
 ## Decisions
 
