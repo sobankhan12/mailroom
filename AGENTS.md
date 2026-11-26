@@ -24,7 +24,8 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 
 - Length limits (subject 50, preview 90) count what Python's `len()` counts: code points. An emoji like 👍🏽 is 2 pieces, so it counts as 2, even though the reader sees 1.
 - Rejection reasons are Pydantic's own messages, shown with the field name. Tests check accepted/rejected and the field, never the message wording, because the wording belongs to Pydantic and can change when it updates.
-- Email checks are about how an address is written, not whether it exists. `sara.ali@gmail.com` would pass the model, so keeping data on @example.com is still on us.
+- Email checks are about how an address is written, not whether it exists. So our own rule, `check_our_rules`, rejects any email not at @example.com.
+- A subscriber who joined after the run date is rejected. This rule lives outside the model, because it needs the run date, and the model only knows the row.
 
 ## How I learn
 

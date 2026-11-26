@@ -56,7 +56,7 @@ def main() -> None:
                 sys.exit(1)
 
         if command == "import":
-            for row in import_signups(sys.argv[2]):
+            for row in import_signups(sys.argv[2], run_date):
                 if row.subscriber is not None:
                     print("accepted:", row.first_name)
                 else:

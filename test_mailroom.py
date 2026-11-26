@@ -212,7 +212,7 @@ def test_personalize_leaves_unsubscribe_url_as_it_is() -> None:
     assert count_text(text, "Unsubscribe: {{unsubscribe_url}}") == 1
 
 
-SIGNUPS = import_signups("data/new-signups.csv")
+SIGNUPS = import_signups("data/new-signups.csv", "2026-11-20")
 
 
 def find_row(first_name: str) -> ImportedRow:
@@ -226,12 +226,19 @@ def test_maria_is_accepted() -> None:
     assert find_row("Maria").subscriber is not None
 
 
-def test_sara_is_accepted() -> None:
-    assert find_row("Sara").subscriber is not None
+def test_sara_is_rejected_for_email_not_at_example_com() -> None:
+    row = find_row("Sara")
+    assert row.subscriber is None
+    assert len(row.reasons) == 1
+    assert row.reasons[0].field == "email"
 
 
-def test_tom_is_accepted() -> None:
-    assert find_row("Tom").subscriber is not None
+def test_tom_is_rejected_for_joining_after_the_run_date() -> None:
+    # Tom joined 2027-01-15; the run date is 2026-11-20
+    row = find_row("Tom")
+    assert row.subscriber is None
+    assert len(row.reasons) == 1
+    assert row.reasons[0].field == "joined_on"
 
 
 def test_ines_is_accepted() -> None:

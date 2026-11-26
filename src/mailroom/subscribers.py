@@ -60,11 +60,29 @@ class ImportedRow:
     reasons: list[Reason]
 
 
-def import_signups(path: str) -> list[ImportedRow]:
+OUR_DOMAIN = "@example.com"
+
+
+def check_our_rules(subscriber: Subscriber, run_date: str) -> list[Reason]:
+    # Our own rules, for rows the model has already accepted.
+    reasons: list[Reason] = []
+    if subscriber.email[-len(OUR_DOMAIN) :] != OUR_DOMAIN:
+        reasons.append(Reason("email", "must be an " + OUR_DOMAIN + " address"))
+    if subscriber.joined_on > date.fromisoformat(run_date):
+        reasons.append(Reason("joined_on", "joined after the run date " + run_date))
+    return reasons
+
+
+def import_signups(path: str, run_date: str) -> list[ImportedRow]:
     imported: list[ImportedRow] = []
     for values in read_rows(path):
         try:
-            imported.append(ImportedRow(values[0], make_subscriber(values), []))
+            subscriber = make_subscriber(values)
+            reasons = check_our_rules(subscriber, run_date)
+            if len(reasons) == 0:
+                imported.append(ImportedRow(values[0], subscriber, []))
+            else:
+                imported.append(ImportedRow(values[0], None, reasons))
         except ValidationError as error:
             reasons: list[Reason] = []
             for problem in error.errors():
