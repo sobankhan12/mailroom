@@ -2,7 +2,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from checks import check_issue
+from issue_checks import check_issue
 from schedule import next_send
 from subscribers import count_by_group, count_joined_since, count_subscribers, read_lines
 

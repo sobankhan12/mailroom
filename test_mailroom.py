@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from checks import (
+from issue_checks import (
     check_footer,
     check_greeting,
     check_issue,
