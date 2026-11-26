@@ -76,6 +76,26 @@ def check_subject(issue_text: str) -> list[str]:
     return ["missing"]
 
 
+def check_preview(issue_text: str) -> list[str]:
+    pass
+
+
+def check_greeting(issue_text: str) -> list[str]:
+    pass
+
+
+def check_link(issue_text: str) -> list[str]:
+    pass
+
+
+def check_footer(issue_text: str) -> list[str]:
+    pass
+
+
+def check_issue(issue_text: str) -> list[str]:
+    pass
+
+
 def get_option(args: list[str], name: str) -> str:
     i = 0
     while i < len(args) - 1:
