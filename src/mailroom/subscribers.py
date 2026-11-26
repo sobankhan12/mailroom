@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, ValidationError
 
+from mailroom.errors import DataFileError
+
 
 class Subscriber(BaseModel):
     first_name: str
@@ -29,66 +31,70 @@ def make_subscriber(values: list[str]) -> Subscriber:
     )
 
 
-def read_rows(path: str) -> list[list[str]]:
-    text = Path(path).read_text(encoding="utf-8")
-    lines = text.strip().split("\n")
-    rows: list[list[str]] = []
-    i = 1  # line 0 is the header, so start at line 1
-    while i < len(lines):
-        rows.append(lines[i].strip().split(","))
-        i += 1
-    return rows
-
-
-def read_subscribers(path: str) -> list[Subscriber]:
-    subscribers: list[Subscriber] = []
-    for values in read_rows(path):
-        subscribers.append(make_subscriber(values))
-    return subscribers
+COLUMNS = "first_name,last_name,email,group,joined_on,consent"
 
 
 @dataclass
-class Reason:
+class Problem:
+    row: int  # as in a spreadsheet: the header is row 1
     field: str  # which column was wrong, e.g. "email"
-    message: str  # Pydantic's words for what was wrong
+    message: str  # what was wrong
 
 
 @dataclass
-class ImportedRow:
-    first_name: str
-    subscriber: Subscriber | None  # None means the row was rejected
-    reasons: list[Reason]
+class SubscriberReport:
+    subscribers: list[Subscriber]  # the good ones
+    problems: list[Problem]  # every problem, in row order
+
+
+def read_lines(path: str) -> list[str]:
+    if not Path(path).is_file():
+        raise DataFileError("There is no file at " + path + ".")
+    lines = Path(path).read_text(encoding="utf-8").strip().split("\n")
+    if lines[0].strip() != COLUMNS:
+        raise DataFileError(path + " has the wrong columns: it must start with " + COLUMNS + ".")
+    return lines
 
 
 OUR_DOMAIN = "@example.com"
 
 
-def check_our_rules(subscriber: Subscriber, run_date: str) -> list[Reason]:
+def check_our_rules(row: int, subscriber: Subscriber, run_date: str) -> list[Problem]:
     # Our own rules, for rows the model has already accepted.
-    reasons: list[Reason] = []
+    problems: list[Problem] = []
     if subscriber.email[-len(OUR_DOMAIN) :] != OUR_DOMAIN:
-        reasons.append(Reason("email", "must be an " + OUR_DOMAIN + " address"))
+        problems.append(Problem(row, "email", "must be an " + OUR_DOMAIN + " address"))
     if subscriber.joined_on > date.fromisoformat(run_date):
-        reasons.append(Reason("joined_on", "joined after the run date " + run_date))
-    return reasons
+        problems.append(Problem(row, "joined_on", "joined after the run date " + run_date))
+    return problems
 
 
-def import_signups(path: str, run_date: str) -> list[ImportedRow]:
-    imported: list[ImportedRow] = []
-    for values in read_rows(path):
+def read_subscribers(path: str, run_date: str) -> SubscriberReport:
+    lines = read_lines(path)
+    report = SubscriberReport([], [])
+    i = 1  # line 0 is the header, so start at line 1
+    while i < len(lines):
+        row = i + 1  # spreadsheet row number
+        values = lines[i].strip().split(",")
+        i += 1
+        if len(values) != 6:
+            report.problems.append(
+                Problem(row, "columns", "expected 6 values, found " + str(len(values)))
+            )
+            continue
         try:
             subscriber = make_subscriber(values)
-            reasons = check_our_rules(subscriber, run_date)
-            if len(reasons) == 0:
-                imported.append(ImportedRow(values[0], subscriber, []))
-            else:
-                imported.append(ImportedRow(values[0], None, reasons))
         except ValidationError as error:
-            reasons: list[Reason] = []
             for problem in error.errors():
-                reasons.append(Reason(str(problem["loc"][0]), problem["msg"]))
-            imported.append(ImportedRow(values[0], None, reasons))
-    return imported
+                report.problems.append(Problem(row, str(problem["loc"][0]), problem["msg"]))
+            continue
+        problems = check_our_rules(row, subscriber, run_date)
+        if len(problems) == 0:
+            report.subscribers.append(subscriber)
+        else:
+            for problem in problems:
+                report.problems.append(problem)
+    return report
 
 
 def count_subscribers(subscribers: list[Subscriber]) -> int:

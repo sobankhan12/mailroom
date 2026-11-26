@@ -8,17 +8,16 @@ from mailroom.checks import (
     count_text,
 )
 from mailroom.subscribers import (
+    DataFileError,
     count_by_group,
     count_joined_since,
     count_subscribers,
     next_send,
-    ImportedRow,
-    import_signups,
     read_subscribers,
 )
 from mailroom.issue import Issue, read_issue
 
-SUBSCRIBERS = read_subscribers("data/subscribers.csv")
+SUBSCRIBERS = read_subscribers("data/subscribers.csv", "2026-11-20").subscribers
 
 
 def test_there_are_24_subscribers_in_total() -> None:
@@ -212,62 +211,67 @@ def test_personalize_leaves_unsubscribe_url_as_it_is() -> None:
     assert count_text(text, "Unsubscribe: {{unsubscribe_url}}") == 1
 
 
-SIGNUPS = import_signups("data/new-signups.csv", "2026-11-20")
+SIGNUPS = read_subscribers("data/new-signups.csv", "2026-11-20")
 
 
-def find_row(first_name: str) -> ImportedRow:
-    for row in SIGNUPS:
-        if row.first_name == first_name:
-            return row
-    raise AssertionError("no row for " + first_name)
+def test_new_signups_gives_2_good_subscribers() -> None:
+    assert len(SIGNUPS.subscribers) == 2
 
 
-def test_maria_is_accepted() -> None:
-    assert find_row("Maria").subscriber is not None
+def test_the_2_good_subscribers_are_maria_and_ines() -> None:
+    assert SIGNUPS.subscribers[0].first_name == "Maria"
+    assert SIGNUPS.subscribers[1].first_name == "Ines"
 
 
-def test_sara_is_rejected_for_email_not_at_example_com() -> None:
-    row = find_row("Sara")
-    assert row.subscriber is None
-    assert len(row.reasons) == 1
-    assert row.reasons[0].field == "email"
+def test_new_signups_gives_6_problems() -> None:
+    assert len(SIGNUPS.problems) == 6
 
 
-def test_tom_is_rejected_for_joining_after_the_run_date() -> None:
+def problem_fields_for_row(row: int) -> list[str]:
+    fields: list[str] = []
+    for problem in SIGNUPS.problems:
+        if problem.row == row:
+            fields.append(problem.field)
+    return fields
+
+
+# Row numbers are as in a spreadsheet: the header is row 1, Maria is row 2.
+def test_omar_row_3_has_an_email_problem() -> None:
+    assert problem_fields_for_row(3) == ["email"]
+
+
+def test_lena_row_4_has_a_consent_problem() -> None:
+    assert problem_fields_for_row(4) == ["consent"]
+
+
+def test_kofi_row_5_has_a_group_problem() -> None:
+    assert problem_fields_for_row(5) == ["group"]
+
+
+def test_hana_row_6_has_a_joined_on_problem() -> None:
+    assert problem_fields_for_row(6) == ["joined_on"]
+
+
+def test_sara_row_7_has_an_email_problem_not_at_example_com() -> None:
+    assert problem_fields_for_row(7) == ["email"]
+
+
+def test_tom_row_8_has_a_joined_on_problem_after_the_run_date() -> None:
     # Tom joined 2027-01-15; the run date is 2026-11-20
-    row = find_row("Tom")
-    assert row.subscriber is None
-    assert len(row.reasons) == 1
-    assert row.reasons[0].field == "joined_on"
+    assert problem_fields_for_row(8) == ["joined_on"]
 
 
-def test_ines_is_accepted() -> None:
-    assert find_row("Ines").subscriber is not None
+def test_no_file_stops_everything() -> None:
+    try:
+        read_subscribers("data/no-such-file.csv", "2026-11-20")
+    except DataFileError:
+        return
+    raise AssertionError("expected DataFileError")
 
 
-def test_omar_is_rejected_for_email() -> None:
-    row = find_row("Omar")
-    assert row.subscriber is None
-    assert len(row.reasons) == 1
-    assert row.reasons[0].field == "email"
-
-
-def test_lena_is_rejected_for_consent() -> None:
-    row = find_row("Lena")
-    assert row.subscriber is None
-    assert len(row.reasons) == 1
-    assert row.reasons[0].field == "consent"
-
-
-def test_kofi_is_rejected_for_group() -> None:
-    row = find_row("Kofi")
-    assert row.subscriber is None
-    assert len(row.reasons) == 1
-    assert row.reasons[0].field == "group"
-
-
-def test_hana_is_rejected_for_joined_on() -> None:
-    row = find_row("Hana")
-    assert row.subscriber is None
-    assert len(row.reasons) == 1
-    assert row.reasons[0].field == "joined_on"
+def test_wrong_columns_stops_everything() -> None:
+    try:
+        read_subscribers("data/wrong-columns.csv", "2026-11-20")
+    except DataFileError:
+        return
+    raise AssertionError("expected DataFileError")

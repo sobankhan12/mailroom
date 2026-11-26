@@ -18,6 +18,8 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - Only the `commands` module prints.
 - Pass `Subscriber` and `Issue` objects around, never raw rows or raw text.
 - Data from outside goes through the model before any code uses it.
+- Report every problem with its row. No traceback for a user's mistake.
+- Exit codes: 0 all good, 1 bad data was reported, 2 a mistake stopped everything (no file, wrong columns), shown as one plain sentence.
 - Every function has type hints, and pyright must be clean (`uv run pyright` shows 0 errors). When pyright complains, fix the call, not the hint.
 
 ## Decisions

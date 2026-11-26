@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from mailroom.errors import DataFileError
+
 LINK_START = "](https://"  # where [Button text] meets (https://...)
 
 
@@ -50,4 +52,6 @@ class Issue:
 
 
 def read_issue(path: str) -> Issue:
+    if not Path(path).is_file():
+        raise DataFileError("There is no file at " + path + ".")
     return Issue(Path(path).read_text(encoding="utf-8"))
