@@ -8,7 +8,7 @@ from mailroom.subscribers import (
     count_joined_since,
     count_subscribers,
     next_send,
-    read_lines,
+    read_subscribers,
 )
 
 
@@ -28,14 +28,14 @@ def main() -> None:
         run_date = get_option(sys.argv, "--run-date") or date.today().isoformat()
 
         if command == "subscribers":
-            lines = read_lines("data/subscribers.csv")
+            subscribers = read_subscribers("data/subscribers.csv")
             since_days = get_option(sys.argv, "--since-days")
             if since_days:
-                count = count_joined_since(lines, run_date, int(since_days))
+                count = count_joined_since(subscribers, run_date, int(since_days))
                 print("joined in the last", since_days, "days before", run_date + ":", count)
             else:
-                print("subscribers:", count_subscribers(lines))
-                groups = count_by_group(lines)
+                print("subscribers:", count_subscribers(subscribers))
+                groups = count_by_group(subscribers)
                 for group in groups:
                     print("  " + group + ":", groups[group])
 
@@ -44,8 +44,8 @@ def main() -> None:
 
         if command == "check":
             issue_path = sys.argv[2]
-            issue_text = read_issue(issue_path)
-            problems = check_issue(issue_text)
+            issue = read_issue(issue_path)
+            problems = check_issue(issue)
             if len(problems) == 0:
                 print(issue_path + ": OK")
             else:

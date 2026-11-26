@@ -1,40 +1,29 @@
+from mailroom.issue import Issue
+
 SUBJECT_LIMIT = 50
 
 
-def check_subject(issue_text: str) -> list[str]:
-    lines = issue_text.split("\n")
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        if line[0:8] == "Subject:":
-            subject = line[8:].strip()  # the text after "Subject:", without spaces
-            if subject == "":
-                return ["empty"]
-            if len(subject) > SUBJECT_LIMIT:
-                return ["too long"]
-            return []
-        i += 1
-    return ["missing"]
-
+def check_subject(issue: Issue) -> list[str]:
+    if issue.subject is None:
+        return ["missing"]
+    if issue.subject == "":
+        return ["empty"]
+    if len(issue.subject) > SUBJECT_LIMIT:
+        return ["too long"]
+    return []
 
 
 PREVIEW_LIMIT = 90
 
 
-def check_preview(issue_text: str) -> list[str]:
-    lines = issue_text.split("\n")
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        if line[0:8] == "Preview:":
-            preview = line[8:].strip()  # the text after "Preview:", without spaces
-            if preview == "":
-                return ["empty"]
-            if len(preview) > PREVIEW_LIMIT:
-                return ["too long"]
-            return []
-        i += 1
-    return ["missing"]
+def check_preview(issue: Issue) -> list[str]:
+    if issue.preview is None:
+        return ["missing"]
+    if issue.preview == "":
+        return ["empty"]
+    if len(issue.preview) > PREVIEW_LIMIT:
+        return ["too long"]
+    return []
 
 
 def count_text(text: str, piece: str) -> int:
@@ -48,17 +37,16 @@ def count_text(text: str, piece: str) -> int:
     return count
 
 
-def check_greeting(issue_text: str) -> list[str]:
-    if count_text(issue_text, "{{first_name}}") == 0:
+def check_greeting(issue: Issue) -> list[str]:
+    if count_text(issue.body, "{{first_name}}") == 0:
         return ["missing"]
     return []
 
 
-def check_link(issue_text: str) -> list[str]:
-    links = count_text(issue_text, "](https://")  # where [Button text] meets (https://...)
-    if links == 0:
+def check_link(issue: Issue) -> list[str]:
+    if len(issue.links) == 0:
         return ["missing"]
-    if links > 1:
+    if len(issue.links) > 1:
         return ["too many"]
     return []
 
@@ -67,8 +55,8 @@ REASON_START = "You're getting this because"
 UNSUBSCRIBE_TEXT = "Unsubscribe: {{unsubscribe_url}}"
 
 
-def check_footer(issue_text: str) -> list[str]:
-    lines = issue_text.split("\n")
+def check_footer(issue: Issue) -> list[str]:
+    lines = issue.body.split("\n")
     has_reason = False
     has_unsubscribe = False
     i = 0
@@ -87,16 +75,16 @@ def check_footer(issue_text: str) -> list[str]:
     return problems
 
 
-def check_issue(issue_text: str) -> list[str]:
+def check_issue(issue: Issue) -> list[str]:
     problems: list[str] = []
-    for problem in check_subject(issue_text):
+    for problem in check_subject(issue):
         problems.append("subject: " + problem)
-    for problem in check_preview(issue_text):
+    for problem in check_preview(issue):
         problems.append("preview: " + problem)
-    for problem in check_greeting(issue_text):
+    for problem in check_greeting(issue):
         problems.append("greeting: " + problem)
-    for problem in check_link(issue_text):
+    for problem in check_link(issue):
         problems.append("link: " + problem)
-    for problem in check_footer(issue_text):
+    for problem in check_footer(issue):
         problems.append("footer: " + problem)
     return problems
