@@ -16,6 +16,7 @@ It reads the subscribers, checks an issue, and sends it to a practice mail serve
 - When something breaks, show me the full error before changing anything.
 - Mailroom is a package under `src/mailroom`. One module per job: `subscribers` (subscribers and dates), `issue`, `checks`, `commands`. Run it with `uv run mailroom`.
 - Only the `commands` module prints.
+- Every function has type hints, and pyright must be clean (`uv run pyright` shows 0 errors). When pyright complains, fix the call, not the hint.
 
 ## Decisions
 
